@@ -91,7 +91,7 @@ fi
 echo "php:\t$(php -v)" | head -n 1
 
 grep remote_connect_back /etc/php5/conf.d/20-xdebug.ini > /dev/null 2>&1
-if [ "${1}" -ne "0" ]; then
+if [[ "$?" -ne "0" ]]; then
   sudo apt-get install php5-xdebug
   sudo tee -a /etc/php5/conf.d/20-xdebug.ini <<CONFIG_BLOCK
 xdebug.remote_connect_back = 1
