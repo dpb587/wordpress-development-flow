@@ -21,13 +21,16 @@
     task_header("Copy")
 
     files.each do |file|
-      #create target location file string (replace source with target in path)  
-      targetLocation = file.sub(@source, @target)  
-      #ensure directory exists  
-      FileUtils.mkdir_p(File.dirname(targetLocation));  
-      #copy the file  
-      FileUtils.cp_r(file, targetLocation)  
-      puts "\tcopying #{file} to #{targetLocation}"
+      targetLocation = file.sub(@source, @target)
+      puts "\tcopying #{file} to #{targetLocation}"      #create target location file string (replace source with target in path)  
+      #create directory
+      if File.directory?(file)
+        FileUtils.mkdir_p(targetLocation, :verbose => true);
+      end
+      #copy file
+      if File.file?(file)
+        FileUtils.cp(file, targetLocation, :verbose => true);
+      end
     end
     puts "\n"
   end
@@ -94,7 +97,7 @@
       task_header("Setting up MySql")
       sh "mysqladmin -uroot -psecret_password create wordpress" do |ok,res|
         if ok
-          sh "mysql -uroot -psecret_password wordpress < wordpress.sample.sql"
+          sh "mysql -uroot -psecret_password wordpress < tests/wordpress.sample.sql"
         end
       end
     end
@@ -152,9 +155,30 @@
   ##
   task :test => [:copy, :watcher]
 
-  ##
-  desc "default => [:run]"
-  ##
+  ##                                                                                            
+  desc "Generating wordpress documentation"                                                     
+  ##                                                                                            
+  task :docs, :type, :name do |t, args|                                                         
+    source = "/home/vagrant/dist/public/wp-content/#{args.type}/#{args.name}"                   
+    target = "/home/vagrant/dist/public/docs/#{args.type}/#{args.name}"                         
+    puts "Generating docs..."                                                                   
+    puts "Source: #{source}"                                                                    
+    puts "Target: #{target}"                                                                    
+                                                                                                
+    #get source switch for phpdoc                                                               
+    if File.extname(source) == ".php"                                                           
+      source_switch = "-f #{source}"                                                            
+    else                                                                                        
+      source_switch = "-d #{source}"                                                            
+    end                                                                                         
+    #end get source                                                                             
+                                                                                                
+    FileUtils.mkdir_p( target )                                                                 
+                                                                                                
+    sh "phpdoc -t #{target} #{source_switch}"                                                   
+  end   
+                                                      
+  ##                                                                                           
   task :default => [:run] do
     puts "Ready for the day!"
     puts ""
