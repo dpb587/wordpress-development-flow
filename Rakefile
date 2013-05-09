@@ -86,11 +86,9 @@
   namespace :dev_server do
     task :mysql do
       task_header("Setting up MySql")
-      sh "mysqladmin -uroot -psecret_password create wordpress" do |ok,res|
-        if ok
-          sh "mysql -uroot -psecret_password wordpress < tests/wordpress.sample.sql"
-        end
-      end
+      sh "mysql -uroot -psecret_password --execute 'drop database if exists wordpress;'" 
+      sh "mysql -uroot -psecret_password --execute 'create database wordpress;'"
+      sh "mysql -uroot -psecret_password wordpress < tests/wordpress.sample.sql"
     end
     task :server_start do
       task_header("Starting server")
